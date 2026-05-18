@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout-Datenbank</title>
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Workout-DB">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f8fb;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --accent-border: #bfdbfe;
+    --text: #0f172a;
+    --muted: #64748b;
+    --red: #dc2626;
+    --green: #16a34a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 22px; }
+
+  /* HEADER */
+  header {
+    padding: 30px 0 22px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 26px;
+  }
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.9rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+  .tagline { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+  .header-actions { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
+
+  .cloud-pill {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+    cursor: pointer;
+  }
+  .cloud-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .cloud-pill.ok .dot { background: var(--green); }
+  .cloud-pill.busy .dot { background: #d97706; }
+  .cloud-pill.err .dot { background: var(--red); }
+
+  button {
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: none;
+    border-radius: 9px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 18px;
+    font-weight: 600;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost {
+    background: var(--surface);
+    color: var(--text);
+    padding: 10px 16px;
+    border: 1px solid var(--border-strong);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* STATS */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .stat .num {
+    font-family: 'Fraunces', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat .label { color: var(--muted); font-size: 0.82rem; margin-top: 6px; }
+
+  /* FILTER BAR */
+  .filterbar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 22px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1.1fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .dur-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dur-range select { flex: 1; min-width: 0; }
+  .dur-range span { color: var(--muted); font-size: 0.85rem; }
+  .filterbar input, .filterbar select {
+    font-family: 'Inter', sans-serif;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    width: 100%;
+    outline: none;
+  }
+  .filterbar input:focus, .filterbar select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .filterbar input::placeholder { color: var(--muted); }
+  .filter-reset {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .filter-reset button {
+    background: transparent;
+    color: var(--muted);
+    padding: 3px 6px;
+    font-size: 0.83rem;
+    text-decoration: underline;
+  }
+  .filter-reset button:hover { color: var(--accent); }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+    padding-bottom: 60px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.16s ease, transform 0.16s ease;
+  }
+  .card:hover {
+    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+    transform: translateY(-2px);
+  }
+  .thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--surface2);
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .play {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(15,23,42,0.18);
+    opacity: 0; transition: opacity 0.16s ease;
+  }
+  .thumb:hover .play { opacity: 1; }
+  .thumb .play span {
+    width: 54px; height: 54px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  .thumb .play span::after {
+    content: '';
+    border-left: 16px solid var(--accent);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    margin-left: 4px;
+  }
+  .thumb .dur {
+    position: absolute; bottom: 8px; right: 8px;
+    background: rgba(15,23,42,0.82);
+    color: #fff;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .thumb .fav {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(255,255,255,0.92);
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1.28;
+    margin-bottom: 5px;
+  }
+  .card-channel { color: var(--muted); font-size: 0.85rem; margin-bottom: 11px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 11px; }
+  .tag {
+    font-size: 0.76rem;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .tag.type {
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .tag.focus { background: var(--surface2); border-color: var(--border-strong); color: var(--text); }
+  .card-notes {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin-bottom: 11px;
+    flex: 1;
+  }
+  .card-actions {
+    display: flex; gap: 7px;
+    border-top: 1px solid var(--border);
+    padding-top: 11px;
+  }
+  .card-actions button {
+    flex: 1;
+    background: var(--surface);
+    color: var(--muted);
+    padding: 7px;
+    font-size: 0.83rem;
+    border: 1px solid var(--border);
+  }
+  .card-actions button:hover { border-color: var(--accent); color: var(--accent); }
+  .card-actions button.del:hover { border-color: var(--red); color: var(--red); }
+
+  .empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+  }
+  .empty .big { font-size: 2.6rem; margin-bottom: 12px; }
+
+  /* MODAL */
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.42);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    z-index: 50;
+    overflow-y: auto;
+  }
+  .modal.hidden { display: none; }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 540px;
+    padding: 26px;
+    box-shadow: 0 20px 50px rgba(15,23,42,0.18);
+  }
+  .modal-box.wide { max-width: 880px; }
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin-bottom: 18px;
+  }
+  .field { margin-bottom: 15px; }
+  .field label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .field input, .field select, .field textarea {
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .field textarea { resize: vertical; min-height: 64px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+  .link-row { display: flex; gap: 8px; }
+  .link-row input { flex: 1; }
+  .link-row button { white-space: nowrap; padding: 10px 14px; }
+  .hint { font-size: 0.78rem; color: var(--muted); margin-top: 5px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip {
+    padding: 6px 13px;
+    border-radius: 999px;
+    background: var(--surface2);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    font-size: 0.85rem;
+    user-select: none;
+  }
+  .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  /* Star rating */
+  .star-picker { display: flex; gap: 6px; align-items: center; }
+  .star-picker .star {
+    font-size: 1.7rem;
+    line-height: 1;
+    color: var(--border-strong);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.12s ease, transform 0.12s ease;
+  }
+  .star-picker .star:hover { transform: scale(1.12); }
+  .star-picker .star.on { color: #f59e0b; }
+  .star-picker .clear {
+    margin-left: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    background: transparent;
+    text-decoration: underline;
+    padding: 2px 4px;
+  }
+  .star-picker .clear:hover { color: var(--accent); }
+  .card-stars { color: #f59e0b; font-size: 0.95rem; letter-spacing: 1px; margin-bottom: 11px; }
+  .card-stars .empty-s { color: var(--border-strong); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .modal-actions button { flex: 1; padding: 11px; }
+  .embed-wrap {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    background: #000;
+  }
+  .embed-wrap iframe { width: 100%; height: 100%; border: 0; }
+
+  @media (max-width: 880px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .filterbar { grid-template-columns: 1fr 1fr; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .filterbar { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-row">
+      <div>
+        <div class="logo">Workout<span>·</span>DB</div>
+        <div class="tagline">Deine persönliche YouTube-Workout-Bibliothek</div>
+      </div>
+      <div class="header-actions">
+        <div class="cloud-pill" id="cloudPill" title="Cloud-Sync-Einstellungen">
+          <span class="dot"></span><span id="cloudText">Lokal</span>
+        </div>
+        <button class="btn-ghost" id="exportBtn">↓ Export</button>
+        <button class="btn-ghost" id="importBtn">↑ Import</button>
+        <button class="btn-primary" id="addBtn">＋ Workout</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none">
+      </div>
+    </div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="filterbar">
+    <input type="text" id="searchInput" placeholder="🔍 Suche nach Titel, Kanal, Notiz…">
+    <select id="typeFilter"><option value="">Alle Typen</option></select>
+    <div class="dur-range">
+      <select id="durMin"><option value="">Min.</option></select>
+      <span>–</span>
+      <select id="durMax"><option value="">Max.</option></select>
+    </div>
+    <select id="focusFilter"><option value="">Jeder Schwerpunkt</option></select>
+    <select id="channelFilter"><option value="">Jeder Kanal</option></select>
+    <select id="intFilter">
+      <option value="">Jede Intensität</option>
+      <option value="Leicht">Leicht</option>
+      <option value="Mittel">Mittel</option>
+      <option value="Hart">Hart</option>
+    </select>
+    <select id="rateFilter">
+      <option value="">Jede Bewertung</option>
+      <option value="3">★★★ (nur 3)</option>
+      <option value="2+">★★ und besser</option>
+      <option value="2">★★ (genau 2)</option>
+      <option value="1+">★ und besser</option>
+      <option value="1">★ (genau 1)</option>
+      <option value="0">Noch nicht bewertet</option>
+    </select>
+    <div class="filter-reset"><button id="resetFilters">Filter zurücksetzen</button></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal hidden" id="formModal">
+  <div class="modal-box">
+    <div class="modal-title" id="formTitle">Workout hinzufügen</div>
+    <div class="field">
+      <label>YouTube-Link *</label>
+      <div class="link-row">
+        <input type="text" id="fLink" placeholder="https://www.youtube.com/watch?v=…">
+        <button class="btn-ghost" id="fetchYt">Daten laden</button>
+      </div>
+      <div class="hint" id="ytHint">Lädt Titel &amp; Kanal automatisch. Dauer und Schwerpunkt bitte selbst eintragen.</div>
+    </div>
+    <div class="field">
+      <label>Titel *</label>
+      <input type="text" id="fName" placeholder="z.B. 20 Min Yoga Flow für die Beine">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Typ *</label>
+        <select id="fType">
+          <option>Yoga</option><option>Pilates</option><option>HIIT</option>
+          <option>Krafttraining</option><option>Cardio</option><option>Mobility</option>
+          <option>Stretching</option><option>Tabata</option><option>Bauch/Core</option>
+          <option>Aufwärmen</option><option>Cool-Down</option><option>Sonstiges</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Dauer (Minuten) *</label>
+        <select id="fDur">
+          <option>5</option><option>10</option><option>15</option><option>20</option>
+          <option>25</option><option>30</option><option>40</option><option>45</option>
+          <option>60</option><option>75</option><option>90</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Schwerpunkt (Mehrfachauswahl)</label>
+      <div class="chips" id="focusChips"></div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Kanal / Trainer</label>
+        <input type="text" id="fChannel" placeholder="z.B. Mady Morrison">
+      </div>
+      <div class="field">
+        <label>Intensität</label>
+        <select id="fInt"><option>Leicht</option><option>Mittel</option><option>Hart</option></select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Equipment</label>
+      <input type="text" id="fEquip" placeholder="z.B. Matte, Hanteln, keins">
+    </div>
+    <div class="field">
+      <label>Notizen</label>
+      <textarea id="fNotes" placeholder="Eigene Anmerkungen…"></textarea>
+    </div>
+    <div class="field">
+      <label>Bewertung</label>
+      <div class="star-picker" id="starPicker">
+        <span class="star" data-v="1">★</span>
+        <span class="star" data-v="2">★</span>
+        <span class="star" data-v="3">★</span>
+        <button type="button" class="clear" id="starClear">zurücksetzen</button>
+      </div>
+    </div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="fFav" style="width:auto;">
+        <span>⭐ Als Favorit markieren</span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="formCancel">Abbrechen</button>
+      <button class="btn-primary" id="formSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER MODAL -->
+<div class="modal hidden" id="playerModal">
+  <div class="modal-box wide">
+    <div class="modal-title" id="playerTitle">Workout</div>
+    <div class="embed-wrap" id="embedWrap"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="playerClose">Schließen</button>
+      <button class="btn-primary" id="playerOpen">Auf YouTube öffnen ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLOUD SETUP MODAL -->
+<div class="modal hidden" id="cloudModal">
+  <div class="modal-box">
+    <div class="modal-title">Cloud-Sync einrichten</div>
+    <p style="color:var(--muted);font-size:0.9rem;line-height:1.5;margin-bottom:18px;">
+      Trage hier deine JSONBin-Zugangsdaten ein. Sie werden <strong>nur auf diesem Gerät</strong>
+      gespeichert (nicht in der Datei). So greifen PC und Smartphone auf dieselbe Datenbank zu.
+    </p>
+    <div class="field">
+      <label>Bin ID</label>
+      <input type="text" id="cBin" placeholder="z.B. 6a0874142...">
+    </div>
+    <div class="field">
+      <label>Master Key</label>
+      <input type="text" id="cKey" placeholder="$2a$10$...">
+    </div>
+    <div class="hint" id="cloudTest"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cloudClear">Sync deaktivieren</button>
+      <button class="btn-primary" id="cloudSave">Speichern &amp; verbinden</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONSTANTS ────────────────────────────────────────────────────────────
+const FOCUS_OPTIONS = ['Beine','Po','Bauch/Core','Arme','Rücken','Brust','Schultern','Ganzkörper','Hüfte','Nacken'];
+const STORE_KEY = 'workoutdb_data';
+const CFG_KEY   = 'workoutdb_cloudcfg';   // per-device JSONBin credentials
+
+let workouts = [];
+let editId = null;
+let selectedFocus = [];
+let selectedRating = 0;
+let cloud = loadCfg();          // {bin, key} or null
+let cloudStatus = 'idle';
+let saveDebounce = null;
+
+// ─── CLOUD CONFIG (per device) ────────────────────────────────────────────
+function loadCfg() {
+  try {
+    const raw = localStorage.getItem(CFG_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+function saveCfg(cfg) {
+  cloud = cfg;
+  try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch(e){}
+}
+function clearCfg() {
+  cloud = null;
+  try { localStorage.removeItem(CFG_KEY); } catch(e){}
+}
+function binUrl() { return `https://api.jsonbin.io/v3/b/${cloud.bin}`; }
+
+function setCloud(state, text) {
+  cloudStatus = state;
+  const pill = document.getElementById('cloudPill');
+  const txt = document.getElementById('cloudText');
+  pill.className = 'cloud-pill' +
+    (state==='ok'?' ok':state==='busy'?' busy':state==='err'?' err':'');
+  txt.textContent = text;
+}
+
+// ─── LOCAL STORAGE ────────────────────────────────────────────────────────
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return [
+    { id:1, link:'https://www.youtube.com/watch?v=b1H3xO3x_Js', name:'20 Min Yoga Flow – Sanfter Start in den Tag',
+      type:'Yoga', dur:20, focus:['Ganzkörper','Rücken'], channel:'Mady Morrison', intensity:'Leicht',
+      equip:'Matte', notes:'Guter Morgenflow, sehr ruhig angeleitet.', fav:true, rating:3 },
+    { id:2, link:'https://www.youtube.com/watch?v=ml6cT4AZdqI', name:'30 Min HIIT – Ganzkörper Fatburner',
+      type:'HIIT', dur:30, focus:['Ganzkörper','Beine'], channel:'Pamela Reif', intensity:'Hart',
+      equip:'keins', notes:'Ordentlich anstrengend, keine Pausen.', fav:false, rating:2 },
+    { id:3, link:'https://www.youtube.com/watch?v=v7AYKMP6rOE', name:'15 Min Beine & Po Workout',
+      type:'Krafttraining', dur:15, focus:['Beine','Po'], channel:'growwithjo', intensity:'Mittel',
+      equip:'keins', notes:'Kurz und effektiv für zwischendurch.', fav:true, rating:0 }
+  ];
+}
+function saveLocal() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(workouts)); } catch(e){}
+}
+
+// ─── CLOUD SYNC (JSONBin) ─────────────────────────────────────────────────
+async function loadCloud() {
+  if (!cloud) return null;
+  setCloud('busy','Lade…');
+  try {
+    const res = await fetch(binUrl() + '/latest', {
+      headers: { 'X-Master-Key': cloud.key, 'X-Bin-Meta': 'false' }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const arr = Array.isArray(data) ? data : (data.workouts || []);
+    setCloud('ok','Synchronisiert');
+    return arr;
+  } catch(e) {
+    setCloud('err','Offline (nur lokal)');
+    return null;
+  }
+}
+
+function saveCloud() {
+  if (!cloud) return;
+  clearTimeout(saveDebounce);
+  saveDebounce = setTimeout(async () => {
+    setCloud('busy','Speichere…');
+    try {
+      const res = await fetch(binUrl(), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': cloud.key },
+        body: JSON.stringify(workouts)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      setCloud('ok','Synchronisiert');
+    } catch(e) {
+      setCloud('err','Offline (nur lokal)');
+    }
+  }, 1000);
+}
+
+function persist() {     // save everywhere
+  saveLocal();
+  saveCloud();
+}
+
+// ─── YOUTUBE HELPERS ──────────────────────────────────────────────────────
+function ytId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function ytThumb(url) {
+  const id = ytId(url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
+async function fetchYtMeta(url) {
+  const id = ytId(url);
+  if (!id) return null;
+  const oembed = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`;
+  try {
+    const r = await fetch(oembed);
+    if (r.ok) return await r.json();
+  } catch(e) {}
+  // Fallback via CORS proxy (same approach as the gaming backlog)
+  try {
+    const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(oembed));
+    if (r.ok) return await r.json();
+  } catch(e) {}
+  return null;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────
+function populateFilters() {
+  const types = [...new Set(workouts.map(w => w.type))].sort();
+  const durs = [...new Set(workouts.map(w => w.dur))].sort((a,b)=>a-b);
+  const focuses = [...new Set(workouts.flatMap(w => w.focus||[]))].sort();
+  const channels = [...new Set(workouts.map(w => w.channel).filter(Boolean))].sort();
+
+  const keep = id => document.getElementById(id).value;
+  const tv=keep('typeFilter'), dmin=keep('durMin'), dmax=keep('durMax'),
+        fv=keep('focusFilter'), cv=keep('channelFilter');
+
+  document.getElementById('typeFilter').innerHTML =
+    '<option value="">Alle Typen</option>' + types.map(t=>`<option>${esc(t)}</option>`).join('');
+  const durOpts = durs.map(d=>`<option value="${d}">${d} Min</option>`).join('');
+  document.getElementById('durMin').innerHTML =
+    '<option value="">Min.</option>' + durOpts;
+  document.getElementById('durMax').innerHTML =
+    '<option value="">Max.</option>' + durOpts;
+  document.getElementById('focusFilter').innerHTML =
+    '<option value="">Jeder Schwerpunkt</option>' + focuses.map(f=>`<option>${esc(f)}</option>`).join('');
+  document.getElementById('channelFilter').innerHTML =
+    '<option value="">Jeder Kanal</option>' + channels.map(c=>`<option>${esc(c)}</option>`).join('');
+
+  document.getElementById('typeFilter').value = tv;
+  document.getElementById('durMin').value = dmin;
+  document.getElementById('durMax').value = dmax;
+  document.getElementById('focusFilter').value = fv;
+  document.getElementById('channelFilter').value = cv;
+}
+
+function renderStats() {
+  const total = workouts.length;
+  const favs = workouts.filter(w=>w.fav).length;
+  const channels = new Set(workouts.map(w=>w.channel).filter(Boolean)).size;
+  const totMin = workouts.reduce((s,w)=>s+(+w.dur||0),0);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="num">${total}</div><div class="label">Workouts gesamt</div></div>
+    <div class="stat"><div class="num">${favs}</div><div class="label">Favoriten</div></div>
+    <div class="stat"><div class="num">${channels}</div><div class="label">Kanäle</div></div>
+    <div class="stat"><div class="num">${totMin}</div><div class="label">Minuten Material</div></div>`;
+}
+
+function render() {
+  renderStats();
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const tF = document.getElementById('typeFilter').value;
+  const dMin = document.getElementById('durMin').value;
+  const dMax = document.getElementById('durMax').value;
+  const fF = document.getElementById('focusFilter').value;
+  const cF = document.getElementById('channelFilter').value;
+  const iF = document.getElementById('intFilter').value;
+  const rF = document.getElementById('rateFilter').value;
+
+  let list = workouts.filter(w => {
+    if (tF && w.type !== tF) return false;
+    if (dMin && +w.dur < +dMin) return false;
+    if (dMax && +w.dur > +dMax) return false;
+    if (fF && !(w.focus||[]).includes(fF)) return false;
+    if (cF && w.channel !== cF) return false;
+    if (iF && w.intensity !== iF) return false;
+    if (rF) {
+      const r = +w.rating || 0;
+      if (rF === '0' && r !== 0) return false;
+      else if (rF === '3' && r !== 3) return false;
+      else if (rF === '2' && r !== 2) return false;
+      else if (rF === '1' && r !== 1) return false;
+      else if (rF === '2+' && r < 2) return false;
+      else if (rF === '1+' && r < 1) return false;
+    }
+    if (q) {
+      const hay = [w.name, w.channel, w.notes, w.type, (w.focus||[]).join(' ')].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const grid = document.getElementById('grid');
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty"><div class="big">🏃</div>
+      <div>Keine Workouts gefunden.</div>
+      <div style="margin-top:6px;font-size:0.88rem;">Passe die Filter an oder füge ein neues Workout hinzu.</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(w => {
+    const thumb = ytThumb(w.link);
+    const focusTags = (w.focus||[]).map(f=>`<span class="tag focus">${esc(f)}</span>`).join('');
+    const r = +w.rating || 0;
+    const starsHtml = r > 0
+      ? `<div class="card-stars">${'★'.repeat(r)}<span class="empty-s">${'★'.repeat(3-r)}</span></div>`
+      : '';
+    return `<div class="card">
+      <div class="thumb" onclick="openPlayer(${w.id})">
+        ${thumb ? `<img src="${thumb}" alt="" loading="lazy">` : ''}
+        <div class="play"><span></span></div>
+        <div class="dur">${w.dur} Min</div>
+        ${w.fav ? '<div class="fav">⭐</div>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${esc(w.name)}</div>
+        <div class="card-channel">${esc(w.channel||'—')}</div>
+        ${starsHtml}
+        <div class="tags">
+          <span class="tag type">${esc(w.type)}</span>
+          <span class="tag">${esc(w.intensity||'')}</span>
+          ${focusTags}
+        </div>
+        ${w.notes ? `<div class="card-notes">${esc(w.notes)}</div>` : '<div class="card-notes"></div>'}
+        <div class="card-actions">
+          <button onclick="openPlayer(${w.id})">▶ Abspielen</button>
+          <button onclick="editWorkout(${w.id})">✎ Bearbeiten</button>
+          <button class="del" onclick="delWorkout(${w.id})">🗑 Löschen</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ─── PLAYER ───────────────────────────────────────────────────────────────
+function openPlayer(id) {
+  const w = workouts.find(x=>x.id===id);
+  if (!w) return;
+  const vid = ytId(w.link);
+  document.getElementById('playerTitle').textContent = w.name;
+  document.getElementById('embedWrap').innerHTML = vid
+    ? `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
+    : '<div style="padding:40px;text-align:center;color:#94a3b8">Kein gültiger YouTube-Link hinterlegt.</div>';
+  document.getElementById('playerOpen').onclick = () => window.open(w.link, '_blank');
+  document.getElementById('playerModal').classList.remove('hidden');
+}
+function closePlayer() {
+  document.getElementById('embedWrap').innerHTML = '';
+  document.getElementById('playerModal').classList.add('hidden');
+}
+
+// ─── FORM ─────────────────────────────────────────────────────────────────
+function buildFocusChips() {
+  document.getElementById('focusChips').innerHTML = FOCUS_OPTIONS.map(f =>
+    `<div class="chip ${selectedFocus.includes(f)?'on':''}" data-f="${esc(f)}">${esc(f)}</div>`).join('');
+  document.querySelectorAll('#focusChips .chip').forEach(c => {
+    c.onclick = () => {
+      const f = c.dataset.f;
+      if (selectedFocus.includes(f)) selectedFocus = selectedFocus.filter(x=>x!==f);
+      else selectedFocus.push(f);
+      buildFocusChips();
+    };
+  });
+}
+
+function buildStars() {
+  document.querySelectorAll('#starPicker .star').forEach(s => {
+    const v = +s.dataset.v;
+    s.classList.toggle('on', v <= selectedRating);
+    s.onclick = () => {
+      // clicking the same single active star toggles it off
+      selectedRating = (selectedRating === v) ? v - 1 : v;
+      if (selectedRating < 0) selectedRating = 0;
+      buildStars();
+    };
+  });
+}
+
+function openForm() {
+  editId = null;
+  selectedFocus = [];
+  document.getElementById('formTitle').textContent = 'Workout hinzufügen';
+  ['fLink','fName','fChannel','fEquip','fNotes'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('fType').value = 'Yoga';
+  document.getElementById('fDur').value = '20';
+  document.getElementById('fInt').value = 'Mittel';
+  document.getElementById('fFav').checked = false;
+  selectedRating = 0;
+  document.getElementById('ytHint').textContent = 'Lädt Titel & Kanal automatisch. Dauer und Schwerpunkt bitte selbst eintragen.';
+  buildFocusChips();
+  buildStars();
+  document.getElementById('formModal').classList.remove('hidden');
+}
+
+function editWorkout(id) {
+  const w = workouts.find(x=>x.id===id);
+  if (!w) return;
+  editId = id;
+  selectedFocus = [...(w.focus||[])];
+  document.getElementById('formTitle').textContent = 'Workout bearbeiten';
+  document.getElementById('fLink').value = w.link||'';
+  document.getElementById('fName').value = w.name||'';
+  document.getElementById('fType').value = w.type||'Yoga';
+  document.getElementById('fDur').value = String(w.dur||20);
+  document.getElementById('fChannel').value = w.channel||'';
+  document.getElementById('fInt').value = w.intensity||'Mittel';
+  document.getElementById('fEquip').value = w.equip||'';
+  document.getElementById('fNotes').value = w.notes||'';
+  document.getElementById('fFav').checked = !!w.fav;
+  selectedRating = +w.rating || 0;
+  buildFocusChips();
+  buildStars();
+  document.getElementById('formModal').classList.remove('hidden');
+}
+
+async function loadYt() {
+  const url = document.getElementById('fLink').value.trim();
+  const hint = document.getElementById('ytHint');
+  if (!ytId(url)) { hint.textContent = '⚠ Kein gültiger YouTube-Link erkannt.'; return; }
+  hint.textContent = '⏳ Lade Daten von YouTube…';
+  const meta = await fetchYtMeta(url);
+  if (meta && meta.title) {
+    if (!document.getElementById('fName').value.trim())
+      document.getElementById('fName').value = meta.title;
+    if (meta.author_name && !document.getElementById('fChannel').value.trim())
+      document.getElementById('fChannel').value = meta.author_name;
+    hint.textContent = '✅ Titel & Kanal übernommen. Dauer und Schwerpunkt bitte selbst eintragen.';
+  } else {
+    hint.textContent = '⚠ Konnte Daten nicht laden – bitte Titel manuell eintragen.';
+  }
+}
+
+function saveForm() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { alert('Bitte einen Titel eingeben.'); return; }
+  const data = {
+    link: document.getElementById('fLink').value.trim(),
+    name,
+    type: document.getElementById('fType').value,
+    dur: +document.getElementById('fDur').value,
+    focus: [...selectedFocus],
+    channel: document.getElementById('fChannel').value.trim(),
+    intensity: document.getElementById('fInt').value,
+    equip: document.getElementById('fEquip').value.trim(),
+    notes: document.getElementById('fNotes').value.trim(),
+    fav: document.getElementById('fFav').checked,
+    rating: selectedRating
+  };
+  if (editId) {
+    const i = workouts.findIndex(x=>x.id===editId);
+    workouts[i] = { ...workouts[i], ...data };
+  } else {
+    const nextId = workouts.length ? Math.max(...workouts.map(w=>w.id))+1 : 1;
+    workouts.push({ id: nextId, ...data });
+  }
+  persist();
+  populateFilters();
+  render();
+  document.getElementById('formModal').classList.add('hidden');
+}
+
+function delWorkout(id) {
+  const w = workouts.find(x=>x.id===id);
+  if (!confirm(`„${w.name}" wirklich löschen?`)) return;
+  workouts = workouts.filter(x=>x.id!==id);
+  persist();
+  populateFilters();
+  render();
+}
+
+// ─── EXPORT / IMPORT ──────────────────────────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify(workouts, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `workout-db-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!Array.isArray(data)) throw new Error();
+      if (!confirm(`${data.length} Workouts importieren? Deine aktuelle Liste wird ersetzt.`)) return;
+      workouts = data;
+      persist();
+      populateFilters();
+      render();
+      alert(`✅ ${data.length} Workouts importiert!`);
+    } catch {
+      alert('❌ Ungültige Datei.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ─── CLOUD SETUP MODAL ────────────────────────────────────────────────────
+function openCloudModal() {
+  document.getElementById('cBin').value = cloud ? cloud.bin : '';
+  document.getElementById('cKey').value = cloud ? cloud.key : '';
+  document.getElementById('cloudTest').textContent = '';
+  document.getElementById('cloudModal').classList.remove('hidden');
+}
+async function saveCloudCfg() {
+  const bin = document.getElementById('cBin').value.trim();
+  const key = document.getElementById('cKey').value.trim();
+  const test = document.getElementById('cloudTest');
+  if (!bin || !key) { test.textContent = '⚠ Bitte beide Felder ausfüllen.'; return; }
+  test.textContent = '⏳ Teste Verbindung…';
+  const tmp = { bin, key };
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${bin}/latest`, {
+      headers: { 'X-Master-Key': key, 'X-Bin-Meta': 'false' }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    saveCfg(tmp);
+    const arr = Array.isArray(data) ? data : (data.workouts || []);
+    if (arr.length) {
+      workouts = arr;
+      saveLocal();
+    } else {
+      saveCloud(); // push current local data up to the fresh bin
+    }
+    populateFilters();
+    render();
+    test.textContent = '✅ Verbunden! Daten werden jetzt synchronisiert.';
+    setCloud('ok','Synchronisiert');
+    setTimeout(()=>document.getElementById('cloudModal').classList.add('hidden'), 1200);
+  } catch(e) {
+    test.textContent = '❌ Verbindung fehlgeschlagen. Bin ID / Master Key prüfen.';
+  }
+}
+function disableCloud() {
+  clearCfg();
+  setCloud('idle','Lokal');
+  document.getElementById('cloudModal').classList.add('hidden');
+}
+
+// ─── EVENTS ───────────────────────────────────────────────────────────────
+document.getElementById('addBtn').onclick = openForm;
+document.getElementById('formCancel').onclick = () => document.getElementById('formModal').classList.add('hidden');
+document.getElementById('formSave').onclick = saveForm;
+document.getElementById('fetchYt').onclick = loadYt;
+document.getElementById('playerClose').onclick = closePlayer;
+document.getElementById('exportBtn').onclick = exportData;
+document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
+document.getElementById('importFile').onchange = function(){ if(this.files[0]) importData(this.files[0]); this.value=''; };
+document.getElementById('cloudPill').onclick = openCloudModal;
+document.getElementById('cloudSave').onclick = saveCloudCfg;
+document.getElementById('cloudClear').onclick = disableCloud;
+document.getElementById('starClear').onclick = () => { selectedRating = 0; buildStars(); };
+
+['searchInput','typeFilter','durMin','durMax','focusFilter','channelFilter','intFilter','rateFilter'].forEach(id =>
+  document.getElementById(id).addEventListener('input', render));
+
+document.getElementById('resetFilters').onclick = () => {
+  document.getElementById('searchInput').value = '';
+  ['typeFilter','durMin','durMax','focusFilter','channelFilter','intFilter','rateFilter'].forEach(id=>document.getElementById(id).value='');
+  render();
+};
+
+['formModal','playerModal','cloudModal'].forEach(id =>
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target.id === id) {
+      if (id==='playerModal') closePlayer();
+      else document.getElementById(id).classList.add('hidden');
+    }
+  }));
+
+// Re-sync when returning to the tab (e.g. switching phone ↔ PC)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && cloud) {
+    loadCloud().then(arr => {
+      if (arr) { workouts = arr; saveLocal(); populateFilters(); render(); }
+    });
+  }
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+(async function init() {
+  workouts = loadLocal();
+  populateFilters();
+  render();
+  if (cloud) {
+    setCloud('busy','Lade…');
+    const arr = await loadCloud();
+    if (arr) { workouts = arr; saveLocal(); populateFilters(); render(); }
+  } else {
+    setCloud('idle','Lokal');
+  }
+})();
+
+// ─── PWA: Service Worker ──────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
