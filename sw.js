@@ -1,5 +1,5 @@
 // Workout-Datenbank — Service Worker
-const CACHE = 'workout-db-v2';
+const CACHE = 'workout-db-v3';
 const ASSETS = [
   './workout-datenbank.html',
   './manifest.json',

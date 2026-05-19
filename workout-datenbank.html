@@ -127,25 +127,74 @@
   }
   .stat .label { color: var(--muted); font-size: 0.82rem; margin-top: 6px; }
 
-  /* FILTER BAR */
-  .filterbar {
+  /* FILTER BAR (compact) */
+  .filter-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .filter-bar .search-wrap { flex: 1; }
+  .filter-bar .search-wrap input {
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    outline: none;
+  }
+  .filter-bar .search-wrap input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .filter-bar .search-wrap input::placeholder { color: var(--muted); }
+  .filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    padding: 0 18px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .filter-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-toggle.open { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .filter-badge {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .filter-panel {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 16px;
+    padding: 18px;
     margin-bottom: 22px;
+    display: none;
+  }
+  .filter-panel.open { display: block; }
+  .fp-grid {
     display: grid;
-    grid-template-columns: 1.5fr 1fr 1.1fr 1fr 1fr 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
   }
-  .dur-range {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  .fp-group { display: flex; flex-direction: column; gap: 6px; }
+  .fp-group label {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
   }
-  .dur-range select { flex: 1; min-width: 0; }
-  .dur-range span { color: var(--muted); font-size: 0.85rem; }
-  .filterbar input, .filterbar select {
+  .fp-group select {
     font-family: 'Inter', sans-serif;
     background: var(--surface);
     border: 1px solid var(--border-strong);
@@ -156,24 +205,24 @@
     width: 100%;
     outline: none;
   }
-  .filterbar input:focus, .filterbar select:focus {
+  .fp-group select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
   }
-  .filterbar input::placeholder { color: var(--muted); }
-  .filter-reset {
-    grid-column: 1 / -1;
-    display: flex;
-    justify-content: flex-end;
+  .dur-range { display: flex; align-items: center; gap: 6px; }
+  .dur-range select { flex: 1; min-width: 0; }
+  .dur-range span { color: var(--muted); font-size: 0.85rem; }
+  .fp-reset { justify-content: flex-end; }
+  .fp-reset button {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
   }
-  .filter-reset button {
-    background: transparent;
-    color: var(--muted);
-    padding: 3px 6px;
-    font-size: 0.83rem;
-    text-decoration: underline;
-  }
-  .filter-reset button:hover { color: var(--accent); }
+  .fp-reset button:hover { border-color: var(--accent); color: var(--accent); }
 
   /* GRID */
   .grid {
@@ -426,11 +475,11 @@
 
   @media (max-width: 880px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
-    .filterbar { grid-template-columns: 1fr 1fr; }
+    .fp-grid { grid-template-columns: repeat(2, 1fr); }
     .field-row { grid-template-columns: 1fr; }
   }
   @media (max-width: 520px) {
-    .filterbar { grid-template-columns: 1fr; }
+    .fp-grid { grid-template-columns: 1fr; }
     .grid { grid-template-columns: 1fr; }
   }
 </style>
@@ -442,7 +491,7 @@
     <div class="header-row">
       <div>
         <div class="logo">Workout<span>·</span>DB</div>
-        <div class="tagline">Deine persönliche YouTube-Workout-Bibliothek <span style="opacity:0.4;font-size:0.78rem;margin-left:6px;">v1.1.0</span></div>
+        <div class="tagline">Deine persönliche YouTube-Workout-Bibliothek <span style="opacity:0.4;font-size:0.78rem;margin-left:6px;">v1.2.0</span></div>
       </div>
       <div class="header-actions">
         <div class="cloud-pill" id="cloudPill" title="Cloud-Sync-Einstellungen">
@@ -458,32 +507,64 @@
 
   <div class="stats" id="stats"></div>
 
-  <div class="filterbar">
-    <input type="text" id="searchInput" placeholder="🔍 Suche nach Titel, Kanal, Notiz…">
-    <select id="typeFilter"><option value="">Alle Typen</option></select>
-    <div class="dur-range">
-      <select id="durMin"><option value="">Min.</option></select>
-      <span>–</span>
-      <select id="durMax"><option value="">Max.</option></select>
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="🔍 Suche nach Titel, Kanal, Notiz…">
     </div>
-    <select id="focusFilter"><option value="">Jeder Schwerpunkt</option></select>
-    <select id="channelFilter"><option value="">Jeder Kanal</option></select>
-    <select id="intFilter">
-      <option value="">Jede Intensität</option>
-      <option value="Leicht">Leicht</option>
-      <option value="Mittel">Mittel</option>
-      <option value="Hart">Hart</option>
-    </select>
-    <select id="rateFilter">
-      <option value="">Jede Bewertung</option>
-      <option value="3">★★★ (nur 3)</option>
-      <option value="2+">★★ und besser</option>
-      <option value="2">★★ (genau 2)</option>
-      <option value="1+">★ und besser</option>
-      <option value="1">★ (genau 1)</option>
-      <option value="0">Noch nicht bewertet</option>
-    </select>
-    <div class="filter-reset"><button id="resetFilters">Filter zurücksetzen</button></div>
+    <button class="filter-toggle" id="filterToggle">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>
+      Filter
+      <span class="filter-badge" id="filterBadge" style="display:none;">0</span>
+    </button>
+  </div>
+
+  <div class="filter-panel" id="filterPanel">
+    <div class="fp-grid">
+      <div class="fp-group">
+        <label>Typ</label>
+        <select id="typeFilter"><option value="">Alle Typen</option></select>
+      </div>
+      <div class="fp-group">
+        <label>Dauer von – bis (Min.)</label>
+        <div class="dur-range">
+          <select id="durMin"><option value="">Min.</option></select>
+          <span>–</span>
+          <select id="durMax"><option value="">Max.</option></select>
+        </div>
+      </div>
+      <div class="fp-group">
+        <label>Schwerpunkt</label>
+        <select id="focusFilter"><option value="">Jeder Schwerpunkt</option></select>
+      </div>
+      <div class="fp-group">
+        <label>Kanal</label>
+        <select id="channelFilter"><option value="">Jeder Kanal</option></select>
+      </div>
+      <div class="fp-group">
+        <label>Intensität</label>
+        <select id="intFilter">
+          <option value="">Jede Intensität</option>
+          <option value="Leicht">Leicht</option>
+          <option value="Mittel">Mittel</option>
+          <option value="Hart">Hart</option>
+        </select>
+      </div>
+      <div class="fp-group">
+        <label>Bewertung</label>
+        <select id="rateFilter">
+          <option value="">Jede Bewertung</option>
+          <option value="3">★★★ (nur 3)</option>
+          <option value="2+">★★ und besser</option>
+          <option value="2">★★ (genau 2)</option>
+          <option value="1+">★ und besser</option>
+          <option value="1">★ (genau 1)</option>
+          <option value="0">Noch nicht bewertet</option>
+        </select>
+      </div>
+      <div class="fp-group fp-reset">
+        <button id="resetFilters">↺ Filter zurücksetzen</button>
+      </div>
+    </div>
   </div>
 
   <div class="grid" id="grid"></div>
@@ -775,12 +856,15 @@ function renderStats() {
   const total = workouts.length;
   const favs = workouts.filter(w=>w.fav).length;
   const channels = new Set(workouts.map(w=>w.channel).filter(Boolean)).size;
-  const totMin = workouts.reduce((s,w)=>s+(+w.dur||0),0);
+  const doneMin = workouts.reduce((s,w)=>s + (+w.dur||0) * (+w.done||0), 0);
+  const doneLabel = doneMin >= 120
+    ? (doneMin/60).toFixed(1).replace('.0','') + ' h'
+    : doneMin + ' Min';
   document.getElementById('stats').innerHTML = `
     <div class="stat"><div class="num">${total}</div><div class="label">Workouts gesamt</div></div>
     <div class="stat"><div class="num">${favs}</div><div class="label">Favoriten</div></div>
     <div class="stat"><div class="num">${channels}</div><div class="label">Kanäle</div></div>
-    <div class="stat"><div class="num">${totMin}</div><div class="label">Minuten Material</div></div>`;
+    <div class="stat"><div class="num">${doneLabel}</div><div class="label">Trainiert (durchgeführt)</div></div>`;
 }
 
 function render() {
@@ -988,6 +1072,19 @@ function saveForm() {
     const i = workouts.findIndex(x=>x.id===editId);
     workouts[i] = { ...workouts[i], ...data };
   } else {
+    // Dublettenprüfung: gleiche YouTube-Video-ID, sonst gleicher Titel
+    const newVid = ytId(data.link);
+    const dup = workouts.find(w => {
+      if (newVid && ytId(w.link) === newVid) return true;
+      if (!newVid && w.name.trim().toLowerCase() === data.name.toLowerCase()) return true;
+      return false;
+    });
+    if (dup) {
+      const msg = newVid
+        ? `Dieses Video ist bereits gespeichert als „${dup.name}".\n\nTrotzdem ein zweites Mal hinzufügen?`
+        : `Ein Workout mit dem Titel „${dup.name}" existiert bereits.\n\nTrotzdem hinzufügen?`;
+      if (!confirm(msg)) return;
+    }
     const nextId = workouts.length ? Math.max(...workouts.map(w=>w.id))+1 : 1;
     workouts.push({ id: nextId, ...data });
   }
@@ -1099,13 +1196,27 @@ document.getElementById('cloudSave').onclick = saveCloudCfg;
 document.getElementById('cloudClear').onclick = disableCloud;
 document.getElementById('starClear').onclick = () => { selectedRating = 0; buildStars(); };
 
+function updateFilterBadge() {
+  const ids = ['typeFilter','durMin','durMax','focusFilter','channelFilter','intFilter','rateFilter'];
+  const active = ids.filter(id => document.getElementById(id).value).length;
+  const badge = document.getElementById('filterBadge');
+  if (active > 0) { badge.style.display = ''; badge.textContent = active; }
+  else { badge.style.display = 'none'; }
+}
+
+document.getElementById('filterToggle').onclick = () => {
+  document.getElementById('filterPanel').classList.toggle('open');
+  document.getElementById('filterToggle').classList.toggle('open');
+};
+
 ['searchInput','typeFilter','durMin','durMax','focusFilter','channelFilter','intFilter','rateFilter'].forEach(id =>
-  document.getElementById(id).addEventListener('input', render));
+  document.getElementById(id).addEventListener('input', () => { render(); updateFilterBadge(); }));
 
 document.getElementById('resetFilters').onclick = () => {
   document.getElementById('searchInput').value = '';
   ['typeFilter','durMin','durMax','focusFilter','channelFilter','intFilter','rateFilter'].forEach(id=>document.getElementById(id).value='');
   render();
+  updateFilterBadge();
 };
 
 ['formModal','playerModal','cloudModal'].forEach(id =>
