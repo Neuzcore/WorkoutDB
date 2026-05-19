@@ -288,6 +288,29 @@
   }
   .card-actions button:hover { border-color: var(--accent); color: var(--accent); }
   .card-actions button.del:hover { border-color: var(--red); color: var(--red); }
+  /* Done counter */
+  .done-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 11px;
+  }
+  .done-count {
+    font-size: 0.83rem;
+    color: var(--muted);
+  }
+  .done-count b { color: var(--accent); font-size: 0.95rem; }
+  .done-plus {
+    margin-left: auto;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .done-plus:hover { background: var(--accent); color: #fff; }
 
   .empty {
     text-align: center;
@@ -419,7 +442,7 @@
     <div class="header-row">
       <div>
         <div class="logo">Workout<span>·</span>DB</div>
-        <div class="tagline">Deine persönliche YouTube-Workout-Bibliothek</div>
+        <div class="tagline">Deine persönliche YouTube-Workout-Bibliothek <span style="opacity:0.4;font-size:0.78rem;margin-left:6px;">v1.1.0</span></div>
       </div>
       <div class="header-actions">
         <div class="cloud-pill" id="cloudPill" title="Cloud-Sync-Einstellungen">
@@ -519,6 +542,11 @@
     <div class="field">
       <label>Equipment</label>
       <input type="text" id="fEquip" placeholder="z.B. Matte, Hanteln, keins">
+    </div>
+    <div class="field">
+      <label>Durchgeführt (Zähler)</label>
+      <input type="number" id="fDone" min="0" step="1" value="0">
+      <div class="hint">Wird normalerweise über „+1 erledigt" auf der Kachel hochgezählt – hier nur zum Korrigieren.</div>
     </div>
     <div class="field">
       <label>Notizen</label>
@@ -631,13 +659,13 @@ function loadLocal() {
   return [
     { id:1, link:'https://www.youtube.com/watch?v=b1H3xO3x_Js', name:'20 Min Yoga Flow – Sanfter Start in den Tag',
       type:'Yoga', dur:20, focus:['Ganzkörper','Rücken'], channel:'Mady Morrison', intensity:'Leicht',
-      equip:'Matte', notes:'Guter Morgenflow, sehr ruhig angeleitet.', fav:true, rating:3 },
+      equip:'Matte', notes:'Guter Morgenflow, sehr ruhig angeleitet.', fav:true, rating:3, done:12 },
     { id:2, link:'https://www.youtube.com/watch?v=ml6cT4AZdqI', name:'30 Min HIIT – Ganzkörper Fatburner',
       type:'HIIT', dur:30, focus:['Ganzkörper','Beine'], channel:'Pamela Reif', intensity:'Hart',
-      equip:'keins', notes:'Ordentlich anstrengend, keine Pausen.', fav:false, rating:2 },
+      equip:'keins', notes:'Ordentlich anstrengend, keine Pausen.', fav:false, rating:2, done:5 },
     { id:3, link:'https://www.youtube.com/watch?v=v7AYKMP6rOE', name:'15 Min Beine & Po Workout',
       type:'Krafttraining', dur:15, focus:['Beine','Po'], channel:'growwithjo', intensity:'Mittel',
-      equip:'keins', notes:'Kurz und effektiv für zwischendurch.', fav:true, rating:0 }
+      equip:'keins', notes:'Kurz und effektiv für zwischendurch.', fav:true, rating:0, done:0 }
   ];
 }
 function saveLocal() {
@@ -821,6 +849,10 @@ function render() {
           ${focusTags}
         </div>
         ${w.notes ? `<div class="card-notes">${esc(w.notes)}</div>` : '<div class="card-notes"></div>'}
+        <div class="done-row">
+          <span class="done-count">Durchgeführt: <b>${+w.done||0}×</b></span>
+          <button class="done-plus" onclick="bumpDone(${w.id})">+1 erledigt</button>
+        </div>
         <div class="card-actions">
           <button onclick="openPlayer(${w.id})">▶ Abspielen</button>
           <button onclick="editWorkout(${w.id})">✎ Bearbeiten</button>
@@ -888,6 +920,7 @@ function openForm() {
   document.getElementById('fDur').value = '20';
   document.getElementById('fInt').value = 'Mittel';
   document.getElementById('fFav').checked = false;
+  document.getElementById('fDone').value = '0';
   selectedRating = 0;
   document.getElementById('ytHint').textContent = 'Lädt Titel & Kanal automatisch. Dauer und Schwerpunkt bitte selbst eintragen.';
   buildFocusChips();
@@ -908,6 +941,7 @@ function editWorkout(id) {
   document.getElementById('fChannel').value = w.channel||'';
   document.getElementById('fInt').value = w.intensity||'Mittel';
   document.getElementById('fEquip').value = w.equip||'';
+  document.getElementById('fDone').value = +w.done || 0;
   document.getElementById('fNotes').value = w.notes||'';
   document.getElementById('fFav').checked = !!w.fav;
   selectedRating = +w.rating || 0;
@@ -947,7 +981,8 @@ function saveForm() {
     equip: document.getElementById('fEquip').value.trim(),
     notes: document.getElementById('fNotes').value.trim(),
     fav: document.getElementById('fFav').checked,
-    rating: selectedRating
+    rating: selectedRating,
+    done: Math.max(0, parseInt(document.getElementById('fDone').value, 10) || 0)
   };
   if (editId) {
     const i = workouts.findIndex(x=>x.id===editId);
@@ -968,6 +1003,14 @@ function delWorkout(id) {
   workouts = workouts.filter(x=>x.id!==id);
   persist();
   populateFilters();
+  render();
+}
+
+function bumpDone(id) {
+  const w = workouts.find(x=>x.id===id);
+  if (!w) return;
+  w.done = (+w.done || 0) + 1;
+  persist();
   render();
 }
 
